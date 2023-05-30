@@ -1,2 +1,5 @@
 # N02-repo
-/test
+
+40 JavaScript practice files
+
+www.freecodecamp.org
