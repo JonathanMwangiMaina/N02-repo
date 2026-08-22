@@ -1,0 +1,199 @@
+# CD Workflow (.github/workflows/cd.yml)
+```yaml
+name: CD - Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  GODOT_VERSION: '4.3.0'
+  SOLUTION: IndieFps.sln
+
+jobs:
+  build-server:
+    name: Build & Publish Server
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Extract Version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION }}
+      - name: Build Server
+        run: dotnet publish src/IndieFps.Server/IndieFps.Server.csproj -c Release -o ./artifacts/server --no-restore -p:Version=${{ steps.version.outputs.version }}
+      - name: Build Docker Image
+        run: |
+          docker build -t indiefps/server:${{ steps.version.outputs.version }} -f infrastructure/Dockerfile.server .
+      - name: Push to GHCR
+        if: github.repository_owner == 'your-org'
+        run: |
+          echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag indiefps/server:${{ steps.version.outputs.version }} ghcr.io/${{ github.repository }}/server:${{ steps.version.outputs.version }}
+          docker push ghcr.io/${{ github.repository }}/server:${{ steps.version.outputs.version }}
+      - name: Upload Server Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-${{ steps.version.outputs.version }}
+          path: artifacts/server/
+          retention-days: 30
+
+  build-client-windows:
+    name: Build Client - Windows
+    runs-on: windows-latest
+    needs: build-server
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Install Godot
+        uses: firebelley/godot-export@v5.2.0
+        with:
+          godot-version: ${{ env.GODOT_VERSION }}
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION }}
+      - name: Build Client
+        run: |
+          cd src/IndieFps.Client
+          dotnet publish -c Release -r win-x64 --self-contained -o ../../artifacts/client/win-x64 -p:Version=${{ needs.build-server.outputs.version }}
+      - name: Create NSIS Installer
+        run: |
+          # Requires NSIS installed
+          makensis /DVERSION=${{ needs.build-server.outputs.version }} build/packaging/installer.nsi
+      - name: Sign Binaries
+        if: env.SIGN_CLIENT != ''
+        run: |
+          # signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 artifacts/client/win-x64/*.exe
+          echo "Code signing skipped - configure SIGN_CLIENT secret"
+      - name: Upload Windows Client
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-windows-${{ needs.build-server.outputs.version }}
+          path: artifacts/client/win-x64/
+          retention-days: 30
+
+  build-client-macos:
+    name: Build Client - macOS
+    runs-on: macos-latest
+    needs: build-server
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Install Godot
+        uses: firebelley/godot-export@v5.2.0
+        with:
+          godot-version: ${{ env.GODOT_VERSION }}
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION }}
+      - name: Build Client
+        run: |
+          cd src/IndieFps.Client
+          dotnet publish -c Release -r osx-arm64 --self-contained -o ../../artifacts/client/osx-arm64 -p:Version=${{ needs.build-server.outputs.version }}
+      - name: Create DMG
+        run: |
+          # create-dmg --identity "Developer ID Application: Your Name" artifacts/client/osx-arm64/IndieFps.app
+          echo "DMG creation skipped - configure signing"
+      - name: Upload macOS Client
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-macos-${{ needs.build-server.outputs.version }}
+          path: artifacts/client/osx-arm64/
+          retention-days: 30
+
+  build-client-linux:
+    name: Build Client - Linux
+    runs-on: ubuntu-latest
+    needs: build-server
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Install Godot
+        uses: firebelley/godot-export@v5.2.0
+        with:
+          godot-version: ${{ env.GODOT_VERSION }}
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION }}
+      - name: Build Client
+        run: |
+          cd src/IndieFps.Client
+          dotnet publish -c Release -r linux-x64 --self-contained -o ../../artifacts/client/linux-x64 -p:Version=${{ needs.build-server.outputs.version }}
+      - name: Create AppImage
+        run: |
+          # linuxdeploy --appdir artifacts/client/linux-x64 --output appimage
+          echo "AppImage creation skipped"
+      - name: Upload Linux Client
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-linux-${{ needs.build-server.outputs.version }}
+          path: artifacts/client/linux-x64/
+          retention-days: 30
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-server, build-client-windows, build-client-macos, build-client-linux]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: client-*-${{ needs.build-server.outputs.version }}
+          merge-multiple: true
+          path: ./release-assets
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.build-server.outputs.version }}
+          name: IndieFps v${{ needs.build-server.outputs.version }}
+          body: |
+            ## IndieFps v${{ needs.build-server.outputs.version }}
+            
+            ### Changes
+            - See commit history for details
+            
+            ### Downloads
+            - Windows: `IndieFps-Setup-${{ needs.build-server.outputs.version }}.exe`
+            - macOS: `IndieFps-${{ needs.build-server.outputs.version }}.dmg`
+            - Linux: `IndieFps-${{ needs.build-server.outputs.version }}.AppImage`
+          files: |
+            release-assets/**/*
+          draft: false
+          prerelease: false
+```
+
+## Required Secrets
+
+| Secret | Description |
+|--------|-------------|
+| `GHCR_TOKEN` | GitHub Container Registry token |
+| `SIGN_WINDOWS_CERT` | Base64 encoded .pfx for Windows signing |
+| `SIGN_WINDOWS_PASSWORD` | Certificate password |
+| `SIGN_MACOS_CERT` | Base64 encoded .p12 for macOS signing |
+| `SIGN_MACOS_PASSWORD` | Certificate password |
+| `STRIPE_SECRET_KEY` | Production Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Production webhook secret |
