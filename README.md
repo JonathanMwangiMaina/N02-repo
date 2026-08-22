@@ -59,7 +59,7 @@ UNPAID → TRIAL (7 days) → ACTIVE → PAST_DUE (14 days grace) → EXPIRED
 
 ### 1. Clone & Configure
 ```bash
-git clone <this-repo>
+git clone NO2-repo
 cd IndieFps
 
 # Start infrastructure
