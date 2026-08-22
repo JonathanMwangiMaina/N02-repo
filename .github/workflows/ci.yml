@@ -1,0 +1,115 @@
+# CI/CD Pipeline for IndieFps
+
+## CI Workflow (.github/workflows/ci.yml)
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  GODOT_VERSION: '4.3.0'
+
+jobs:
+  build-shared:
+    name: Build Shared
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore
+        run: dotnet restore IndieFps.sln
+      - name: Build Shared
+        run: dotnet build src/IndieFps.Shared/IndieFps.Shared.csproj --configuration Release --no-restore
+      - name: Test Shared
+        run: dotnet test tests/IndieFps.Shared.Tests/IndieFps.Shared.Tests.csproj --configuration Release --no-build
+
+  build-server:
+    name: Build Server
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: indiefps_test
+        ports: 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore
+        run: dotnet restore IndieFps.sln
+      - name: Build Server
+        run: dotnet build src/IndieFps.Server/IndieFps.Server.csproj --configuration Release --no-restore
+      - name: Test Server
+        run: dotnet test tests/IndieFps.Server.Tests/IndieFps.Server.Tests.csproj --configuration Release --no-build
+      - name: Run Integration Tests
+        run: dotnet test tests/IndieFps.Integration.Tests/IndieFps.Integration.Tests.csproj --configuration Release --no-build
+
+  build-client:
+    name: Build Client (Godot)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Install Godot
+        uses: firebelley/godot-export@v5.2.0
+        with:
+          godot-version: ${{ env.GODOT_VERSION }}
+      - name: Restore
+        run: dotnet restore IndieFps.sln
+      - name: Build Client
+        run: |
+          cd src/IndieFps.Client
+          dotnet build --configuration Release
+      - name: Run Godot Tests (GUT)
+        run: |
+          cd src/IndieFps.Client
+          godot --headless --script res://addons/gut/gut_cmdln.gd
+
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Check Format
+        run: dotnet format --verify-no-changes --verbosity detailed
+      - name: Run Analyzers
+        run: dotnet build IndieFps.sln --configuration Release /p:TreatWarningsAsErrors=true
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+      - name: Dependency Scan
+        run: dotnet list IndieFps.sln package --vulnerable --include-transitive
