@@ -1,9 +1,10 @@
 <# 
 .SYNOPSIS
-    Cross-platform build script for IndieFps (Windows PowerShell)
+    Cross-platform build script for BlackoutClause FPS (Windows PowerShell)
 
 .DESCRIPTION
     Builds the solution, runs tests, and creates platform-specific artifacts.
+    Run from games/blackoutclause-fps/ directory.
 
 .PARAMETER Configuration
     Build configuration (Debug/Release). Default: Release
@@ -23,11 +24,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$Solution = 'IndieFps.sln'
+$Solution = 'BlackoutClause.sln'
 $ArtifactsDir = 'artifacts'
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "Building IndieFps - $Configuration v$Version" -ForegroundColor Cyan
+Write-Host "Building BlackoutClause FPS - $Configuration v$Version" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 
 # Clean previous builds
@@ -42,11 +43,11 @@ dotnet restore $Solution
 
 # Build Shared
 Write-Host "Building Shared..." -ForegroundColor Yellow
-dotnet build src/IndieFps.Shared/IndieFps.Shared.csproj -c $Configuration --no-restore -p:Version=$Version
+dotnet build src/BlackoutClause.Shared/BlackoutClause.Shared.csproj -c $Configuration --no-restore -p:Version=$Version
 
-# Build Server
+# Build Server (NO TRIMMING - Godot uses reflection)
 Write-Host "Building Server..." -ForegroundColor Yellow
-dotnet publish src/IndieFps.Server/IndieFps.Server.csproj -c $Configuration -o "$ArtifactsDir/server" --no-restore -p:Version=$Version -p:PublishTrimmed=true -p:TrimMode=partial
+dotnet publish src/BlackoutClause.Server/BlackoutClause.Server.csproj -c $Configuration -o "$ArtifactsDir/server" --no-restore -p:Version=$Version -p:PublishTrimmed=false
 
 # Detect runtime
 $Runtime = switch ($env:PROCESSOR_ARCHITECTURE) {
@@ -56,7 +57,7 @@ $Runtime = switch ($env:PROCESSOR_ARCHITECTURE) {
 }
 
 Write-Host "Building Client for $Runtime..." -ForegroundColor Yellow
-dotnet publish src/IndieFps.Client/IndieFps.Client.csproj -c $Configuration -r $Runtime --self-contained -o "$ArtifactsDir/client/$Runtime" --no-restore -p:Version=$Version
+dotnet publish src/BlackoutClause.Client/BlackoutClause.Client.csproj -c $Configuration -r $Runtime --self-contained -o "$ArtifactsDir/client/$Runtime" --no-restore -p:Version=$Version
 
 # Run tests
 Write-Host "Running tests..." -ForegroundColor Yellow
@@ -69,5 +70,5 @@ Write-Host "==========================================" -ForegroundColor Green
 
 # List artifacts
 Get-ChildItem "$ArtifactsDir" -Recurse -File | Where-Object { 
-    $_.Extension -in '.exe', '.dll', '' -and $_.Name -like 'IndieFps*' 
+    $_.Extension -in '.exe', '.dll', '' -and $_.Name -like 'BlackoutClause*' 
 } | Select-Object -First 20 | Format-Table FullName, Length -AutoSize

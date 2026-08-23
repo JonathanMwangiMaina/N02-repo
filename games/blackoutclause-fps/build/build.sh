@@ -1,16 +1,17 @@
 #!/bin/bash
-# build.sh - Cross-platform build script for IndieFps
+# build.sh - Cross-platform build script for BlackoutClause FPS
 # Usage: ./build.sh [Debug|Release] [version]
+# Run from games/blackoutclause-fps/ directory
 
 set -euo pipefail
 
 CONFIGURATION="${1:-Release}"
 VERSION="${2:-1.0.0}"
-SOLUTION="IndieFps.sln"
+SOLUTION="BlackoutClause.sln"
 ARTIFACTS_DIR="artifacts"
 
 echo "=========================================="
-echo "Building IndieFps - $CONFIGURATION v$VERSION"
+echo "Building BlackoutClause FPS - $CONFIGURATION v$VERSION"
 echo "=========================================="
 
 # Clean previous builds
@@ -23,11 +24,11 @@ dotnet restore "$SOLUTION"
 
 # Build Shared
 echo "Building Shared..."
-dotnet build src/IndieFps.Shared/IndieFps.Shared.csproj -c "$CONFIGURATION" --no-restore -p:Version="$VERSION"
+dotnet build src/BlackoutClause.Shared/BlackoutClause.Shared.csproj -c "$CONFIGURATION" --no-restore -p:Version="$VERSION"
 
-# Build Server
+# Build Server (NO TRIMMING - Godot uses reflection)
 echo "Building Server..."
-dotnet publish src/IndieFps.Server/IndieFps.Server.csproj -c "$CONFIGURATION" -o "$ARTIFACTS_DIR/server" --no-restore -p:Version="$VERSION" -p:PublishTrimmed=true -p:TrimMode=partial
+dotnet publish src/BlackoutClause.Server/BlackoutClause.Server.csproj -c "$CONFIGURATION" -o "$ARTIFACTS_DIR/server" --no-restore -p:Version="$VERSION" -p:PublishTrimmed=false
 
 # Detect OS for client build
 OS_NAME=$(uname -s)
@@ -48,7 +49,7 @@ case "$OS_NAME" in
 esac
 
 echo "Building Client for $RUNTIME..."
-dotnet publish src/IndieFps.Client/IndieFps.Client.csproj -c "$CONFIGURATION" -r "$RUNTIME" --self-contained -o "$ARTIFACTS_DIR/client/$RUNTIME" --no-restore -p:Version="$VERSION"
+dotnet publish src/BlackoutClause.Client/BlackoutClause.Client.csproj -c "$CONFIGURATION" -r "$RUNTIME" --self-contained -o "$ARTIFACTS_DIR/client/$RUNTIME" --no-restore -p:Version="$VERSION"
 
 # Run tests
 echo "Running tests..."
@@ -60,4 +61,4 @@ echo "Artifacts in: $ARTIFACTS_DIR/"
 echo "=========================================="
 
 # List artifacts
-find "$ARTIFACTS_DIR" -type f -name "*.exe" -o -name "*.dll" -o -name "IndieFps*" | head -20
+find "$ARTIFACTS_DIR" -type f \( -name "*.exe" -o -name "*.dll" -o -name "BlackoutClause*" \) | head -20

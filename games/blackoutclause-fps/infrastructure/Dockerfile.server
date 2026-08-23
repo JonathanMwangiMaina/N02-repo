@@ -7,17 +7,17 @@ COPY BlackoutClause.sln .
 COPY Directory.Build.props .
 COPY Directory.Packages.props .
 COPY global.json .
-COPY games/blackoutclause-fps/src/BlackoutClause.Shared/BlackoutClause.Shared.csproj games/blackoutclause-fps/src/BlackoutClause.Shared/
-COPY games/blackoutclause-fps/src/BlackoutClause.Server/BlackoutClause.Server.csproj games/blackoutclause-fps/src/BlackoutClause.Server/
+COPY src/BlackoutClause.Shared/BlackoutClause.Shared.csproj src/BlackoutClause.Shared/
+COPY src/BlackoutClause.Server/BlackoutClause.Server.csproj src/BlackoutClause.Server/
 
 # Restore dependencies (only server project)
-RUN dotnet restore games/blackoutclause-fps/src/BlackoutClause.Server/BlackoutClause.Server.csproj
+RUN dotnet restore src/BlackoutClause.Server/BlackoutClause.Server.csproj
 
 # Copy source code
-COPY games/blackoutclause-fps/src/ games/blackoutclause-fps/src/
+COPY src/ src/
 
 # Build and publish (NO TRIMMING - Godot uses reflection)
-WORKDIR /src/games/blackoutclause-fps/src/BlackoutClause.Server
+WORKDIR /src/src/BlackoutClause.Server
 RUN dotnet publish -c Release -o /app/publish -p:PublishTrimmed=false
 
 # Runtime stage
