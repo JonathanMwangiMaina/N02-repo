@@ -1,0 +1,138 @@
+name: CI - BlackoutClause
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'games/blackoutclause-fps/**'
+      - '.github/workflows/ci-blackoutclause.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'games/blackoutclause-fps/**'
+      - '.github/workflows/ci-blackoutclause.yml'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  GODOT_VERSION: '4.3.0'
+  PROJECT_PATH: 'games/blackoutclause-fps'
+
+jobs:
+  build-shared:
+    name: Build Shared
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_PATH }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore
+        run: dotnet restore BlackoutClause.sln
+      - name: Build Shared
+        run: dotnet build src/BlackoutClause.Shared/BlackoutClause.Shared.csproj --configuration Release --no-restore
+      - name: Test Shared
+        run: dotnet test tests/BlackoutClause.Shared.Tests/BlackoutClause.Shared.Tests.csproj --configuration Release --no-build
+
+  build-server:
+    name: Build Server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_PATH }}
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: blackoutclause_test
+        ports: 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports: 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore
+        run: dotnet restore BlackoutClause.sln
+      - name: Build Server
+        run: dotnet build src/BlackoutClause.Server/BlackoutClause.Server.csproj --configuration Release --no-restore
+      - name: Test Server
+        run: dotnet test tests/BlackoutClause.Server.Tests/BlackoutClause.Server.Tests.csproj --configuration Release --no-build
+      - name: Run Integration Tests
+        run: dotnet test tests/BlackoutClause.Integration.Tests/BlackoutClause.Integration.Tests.csproj --configuration Release --no-build
+
+  build-docker-server:
+    name: Build Docker Server
+    runs-on: ubuntu-latest
+    needs: build-server
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Image
+        run: |
+          cd ${{ env.PROJECT_PATH }}
+          docker build -t blackoutclause/server:${{ github.sha }} -f infrastructure/Dockerfile.server ..
+      - name: Test Docker Image
+        run: |
+          docker run --rm -d --name test-server -p 8080:8080 \
+            -e ASPNETCORE_URLS=http://+:8080 \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            -e ConnectionStrings__Default="Host=host.docker.internal;Database=blackoutclause;Username=postgres;Password=postgres" \
+            -e Clerk__Domain="test.clerk.accounts.dev" \
+            -e Clerk__PublishableKey="pk_test_xxx" \
+            -e Clerk__SecretKey="sk_test_xxx" \
+            -e Clerk__WebhookSecret="whsec_xxx" \
+            blackoutclause/server:${{ github.sha }}
+          sleep 10
+          curl -f http://localhost:8080/health/live || (docker logs test-server && exit 1)
+          docker stop test-server
+
+  lint:
+    name: Lint & Format (Zero Warnings)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.PROJECT_PATH }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Check Format
+        run: dotnet format --verify-no-changes --verbosity detailed
+      - name: Build with TreatWarningsAsErrors
+        run: dotnet build BlackoutClause.sln --configuration Release /p:TreatWarningsAsErrors=true
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+      - name: Dependency Vulnerability Scan
+        run: |
+          cd ${{ env.PROJECT_PATH }}
+          dotnet list BlackoutClause.sln package --vulnerable --include-transitive

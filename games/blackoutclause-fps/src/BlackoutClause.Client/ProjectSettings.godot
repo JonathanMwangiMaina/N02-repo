@@ -1,0 +1,61 @@
+[application]
+
+config/name="BlackoutClause"
+config/icon="res://icon.svg"
+run/main_scene="res://Scenes/Main/MainMenu.tscn"
+config/features=PackedStringArray("3d", "physics_3d", "navigation_3d")
+
+[rendering]
+
+rendering/renderer/rendering_method="forward_plus"
+rendering/quality/shadows/atlas_size=2048
+rendering/quality/shadows/max_atlas_size=4096
+rendering/quality/reflections/enabled=true
+rendering/environment/defaults/default_clear_color=Color(0.1, 0.1, 0.15, 1)
+
+[physics]
+
+physics/3d/physics_engine="JoltPhysics3D"
+physics/common/physics_ticks_per_second=60
+
+[input]
+
+# Movement
+input_map/move_forward = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "W" }, { "type": "JoyAxis", "axis": 1, "axis_value": -1.0 } ] }
+input_map/move_backward = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "S" }, { "type": "JoyAxis", "axis": 1, "axis_value": 1.0 } ] }
+input_map/move_left = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "A" }, { "type": "JoyAxis", "axis": 0, "axis_value": -1.0 } ] }
+input_map/move_right = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "D" }, { "type": "JoyAxis", "axis": 0, "axis_value": 1.0 } ] }
+input_map/jump = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Space" }, { "type": "JoyButton", "button_index": 0 } ] }
+input_map/sprint = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Shift" }, { "type": "JoyButton", "button_index": 13 } ] }
+input_map/crouch = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Control" }, { "type": "JoyButton", "button_index": 14 } ] }
+
+# Combat
+input_map/fire = { "deadzone": 0.5, "events": [ { "type": "MouseButton", "button_index": 0 }, { "type": "JoyButton", "button_index": 1 } ] }
+input_map/aim = { "deadzone": 0.5, "events": [ { "type": "MouseButton", "button_index": 1 }, { "type": "JoyButton", "button_index": 3 } ] }
+input_map/reload = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "R" }, { "type": "JoyButton", "button_index": 2 } ] }
+input_map/weapon_1 = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Key1" } ] }
+input_map/weapon_2 = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Key2" } ] }
+input_map/weapon_3 = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Key3" } ] }
+
+# UI
+input_map/ui_accept = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Enter" }, { "type": "JoyButton", "button_index": 0 } ] }
+input_map/ui_cancel = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Escape" }, { "type": "JoyButton", "button_index": 1 } ] }
+input_map/ui_up = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Up" }, { "type": "JoyAxis", "axis": 1, "axis_value": -1.0 } ] }
+input_map/ui_down = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Down" }, { "type": "JoyAxis", "axis": 1, "axis_value": 1.0 } ] }
+input_map/ui_left = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Left" }, { "type": "JoyAxis", "axis": 0, "axis_value": -1.0 } ] }
+input_map/ui_right = { "deadzone": 0.5, "events": [ { "type": "Key", "physical_keycode": "Right" }, { "type": "JoyAxis", "axis": 0, "axis_value": 1.0 } ] }
+
+[debug]
+
+debug/settings/profiler/max_functions=2000
+
+[autoload]
+
+Global="res://Scripts/Core/Global.gd"
+ApiClient="res://Scripts/Networking/ApiClient.cs"
+AuthTokenManager="res://Scripts/Networking/AuthTokenManager.cs"
+SecureStorage="res://Scripts/Storage/SecureStorage.cs"
+LocalDb="res://Scripts/Storage/LocalDb.cs"
+SubscriptionManager="res://Scripts/Subscription/SubscriptionManager.cs"
+SettingsManager="res://Scripts/Core/SettingsManager.cs"
+AudioManager="res://Scripts/Core/AudioManager.cs"

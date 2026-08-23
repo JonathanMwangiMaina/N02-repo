@@ -1,0 +1,37 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="256" height="256" fill="#0d0d14"/>
+  
+  <!-- Outer glow circle -->
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#1a1a2e" stroke-width="8" opacity="0.5"/>
+  
+  <!-- Main circle -->
+  <circle cx="128" cy="128" r="95" fill="url(#gradient)"/>
+  
+  <!-- Inner highlight -->
+  <circle cx="110" cy="110" r="35" fill="url(#highlight)"/>
+  
+  <!-- Stylized "B" letter / Split circle representing the two factions -->
+  <path d="M 128 45 C 128 45 155 55 165 85 C 175 115 155 145 128 155 C 101 145 81 115 91 85 C 101 55 128 45 128 45 Z" 
+        fill="none" stroke="#0d0d14" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Faction divider line -->
+  <line x1="128" y1="45" x2="128" y2="155" stroke="#0d0d14" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+  
+  <!-- Small accent dots -->
+  <circle cx="100" cy="80" r="4" fill="#4a9eff" opacity="0.8"/>
+  <circle cx="156" cy="80" r="4" fill="#ff4a4a" opacity="0.8"/>
+  
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0d1b2a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1b2a4a;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="highlight" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+</svg>
