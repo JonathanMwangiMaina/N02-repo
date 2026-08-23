@@ -3,22 +3,22 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR /src
 
 # Copy solution and project files
-COPY IndieFps.sln .
+COPY BlackoutClause.sln .
 COPY Directory.Build.props .
 COPY Directory.Packages.props .
 COPY global.json .
-COPY src/IndieFps.Shared/IndieFps.Shared.csproj src/IndieFps.Shared/
-COPY src/IndieFps.Server/IndieFps.Server.csproj src/IndieFps.Server/
+COPY games/blackoutclause-fps/src/BlackoutClause.Shared/BlackoutClause.Shared.csproj games/blackoutclause-fps/src/BlackoutClause.Shared/
+COPY games/blackoutclause-fps/src/BlackoutClause.Server/BlackoutClause.Server.csproj games/blackoutclause-fps/src/BlackoutClause.Server/
 
-# Restore dependencies
-RUN dotnet restore IndieFps.sln
+# Restore dependencies (only server project)
+RUN dotnet restore games/blackoutclause-fps/src/BlackoutClause.Server/BlackoutClause.Server.csproj
 
 # Copy source code
-COPY src/ src/
+COPY games/blackoutclause-fps/src/ games/blackoutclause-fps/src/
 
-# Build and publish
-WORKDIR /src/src/IndieFps.Server
-RUN dotnet publish -c Release -o /app/publish --no-restore -p:PublishTrimmed=true -p:TrimMode=partial
+# Build and publish (NO TRIMMING - Godot uses reflection)
+WORKDIR /src/games/blackoutclause-fps/src/BlackoutClause.Server
+RUN dotnet publish -c Release -o /app/publish -p:PublishTrimmed=false
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
@@ -52,4 +52,4 @@ ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Entry point
-ENTRYPOINT ["dotnet", "IndieFps.Server.dll"]
+ENTRYPOINT ["dotnet", "BlackoutClause.Server.dll"]

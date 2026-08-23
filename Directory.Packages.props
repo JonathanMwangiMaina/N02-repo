@@ -28,14 +28,8 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0" />
 
-    <!-- Stripe -->
-    <PackageVersion Include="Stripe.net" Version="45.0.0" />
-
-    <!-- Auth / Security -->
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="7.5.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="7.5.0" />
-    <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
-    <PackageVersion Include="Argon2.PasswordHasher" Version="1.1.0" />
+    <!-- Clerk (Auth, Multi-tenancy, Billing) -->
+    <PackageVersion Include="Clerk.Net" Version="1.0.0" />
 
     <!-- Serialization -->
     <PackageVersion Include="System.Text.Json" Version="8.0.0" />
@@ -55,6 +49,7 @@
     <!-- Godot (for client project reference) -->
     <PackageVersion Include="GodotSharp" Version="4.3.0" />
     <PackageVersion Include="GodotSharp.SourceGenerators" Version="4.3.0" />
+    <PackageVersion Include="GodotSharpEditor" Version="4.3.0" />
 
     <!-- Utilities -->
     <PackageVersion Include="Humanizer" Version="2.14.1" />
@@ -63,13 +58,13 @@
     <PackageVersion Include="YamlDotNet" Version="15.1.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(MSBuildProjectName)' == 'IndieFps.Server'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'BlackoutClause.Server'">
     <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="8.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="8.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(MSBuildProjectName)' == 'IndieFps.Client'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'BlackoutClause.Client'">
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.8" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
