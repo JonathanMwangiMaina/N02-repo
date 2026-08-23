@@ -1,0 +1,50 @@
+# Godot
+.godot/
+export_presets.cfg
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+*.DotSettings
+*.DotSettings.user
+
+# Build outputs
+build/
+*.nupkg
+*.snupkg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local configuration
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.cobertura.xml
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# NuGet
+packages/
