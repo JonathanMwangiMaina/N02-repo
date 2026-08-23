@@ -12,7 +12,7 @@ A sci-fi mercenary hero shooter built with Godot 4.3 (C#) and ASP.NET Core 8.
 
 ### 1. Clone & Configure
 ```bash
-git clone https://github.com/your-org/N02-repo.git
+git clone https://github.com/JonathanMwangiMaina/N02-repo.git
 cd N02-repo/games/blackoutclause-fps
 
 # Start infrastructure (PostgreSQL, Redis, PgBouncer, Mailpit)
