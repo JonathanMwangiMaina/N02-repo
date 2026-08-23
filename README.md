@@ -6,10 +6,10 @@ Welcome! 🚀 This is where innovation meets execution. Whether you're building 
 
 ## Get Started
 Ready to dive in? Here's how:
-- 📖 Check out the [docs](./docs) (or create them!)
-- 🛠️ Explore the [source code](./src)
+- 📖 Check out the [directories](./games) (or create them!)
+- 🛠️ Explore the [source code](./games)
 - 🤝 Contribute and collaborate
 
 ---
 
-**What will you build with this?** ✨
+**What are you waiting for?** ✨
