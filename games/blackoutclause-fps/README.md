@@ -157,7 +157,7 @@ games/blackoutclause-fps/
 | **Auth & Billing** | Clerk (Auth, Multi-tenancy/Organizations, Billing) |
 | **Real-time** | WebRTC / WebSocket (planned) |
 | **CI/CD** | GitHub Actions (multi-platform matrix) |
-| **Containerization | Docker (per-platform client + server) |
+| **Containerization** | Docker (per-platform client + server) |
 | **Packaging** | NSIS (Windows), DMG (macOS), AppImage (Linux), IPA (iOS), AAB/APK (Android) |
 
 ## Security
