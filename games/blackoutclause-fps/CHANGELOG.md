@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI/CD pipeline with CodeQL security scanning
 - Platform-specific build configurations for Windows, macOS, Linux, iOS, Android
 - App hardening against 2025/2026 game exploits (anti-cheat, input validation, rate limiting)
+- PgBouncer connection pooling for 1000+ concurrent DB connections
+- Upstash Redis support (serverless, global, scale-to-zero) for leaderboards/rate limiting
+- Business analysis section in README: TAM/SAM/SOM, CAC/LTV, GTM strategy, execution roadmap
+- Simon Game (HTML/CSS/JS) restored from git history as separate game in repo
+- 9 Architecture Decision Records (ADR) documenting key architectural choices
 
 ### Changed
 - Renamed project from IndieFps to BlackoutClause across all projects and namespaces
@@ -29,6 +34,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disabled code trimming (PublishTrimmed=false) for Godot reflection compatibility
 - Updated CI/CD to build for all target platforms with zero warnings/errors target
 - Restructured repository for multi-game support (Simon game + BlackoutClause)
+- Moved infrastructure/, build/, docs/, CI/CD workflows inside games/blackoutclause-fps/
+- Updated build.sh/build.ps1 for new paths and BlackoutClause naming
+- Fixed Dockerfile.server paths for new structure
+- Fixed BlackoutClause.sln project paths
+- Updated README.md with comprehensive business analysis (TAM/SAM/SOM, CAC/LTV, GTM, roadmap)
+
+### Fixed
+- Solution file project paths after directory restructuring
+- Docker build context paths
+- GitHub Actions workflow paths
+- MSBuild project references
 
 ### Security
 - Implemented input validation and sanitization on all network endpoints
@@ -37,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Non-root Docker containers with read-only filesystem where possible
 - CodeQL static analysis integrated in CI pipeline
 - Dependency vulnerability scanning in CI pipeline
+- PgBouncer transaction pooling for connection reuse
+- Upstash Redis with TLS and token-based auth
+- Clerk webhook signature verification (Svix HMAC-SHA256)
 
 ## [1.0.0] - 2026-08-23
 
